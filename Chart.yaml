@@ -1,0 +1,6 @@
+apiVersion: v2
+name: grafana-demo-services
+description: A Helm chart for deploying dummy services for Grafana Cloud demo
+type: application
+version: 0.1.0
+appVersion: "1.0"

@@ -1,0 +1,58 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.serviceB.name }}-config
+  labels:
+    app: {{ .Values.serviceB.name }}
+data:
+  nginx.conf: |
+    events {
+      worker_connections 1024;
+    }
+    
+    http {
+      include /etc/nginx/mime.types;
+      default_type application/json;
+      
+      # Enable access log for observability
+      access_log /var/log/nginx/access.log;
+      error_log /var/log/nginx/error.log;
+      
+      # Resolver for DNS lookups
+      resolver kube-dns.kube-system.svc.cluster.local valid=10s;
+      
+      server {
+        listen {{ .Values.serviceB.containerPort }};
+        server_name _;
+        
+        # Health check endpoint
+        location /health {
+          access_log off;
+          return 200 '{"status":"healthy","service":"service-b"}\n';
+          add_header Content-Type application/json;
+        }
+        
+        # Slow endpoint - makes internal call to service-a
+        location /slow {
+          default_type application/json;
+          
+          # Proxy to service-a (the delay will come from processing)
+          proxy_pass {{ .Values.serviceB.serviceAUrl }};
+          proxy_set_header Host $host;
+          proxy_set_header X-Real-IP $remote_addr;
+          proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+          proxy_set_header X-Calling-Service "service-b";
+          
+          # Add custom headers for tracing
+          add_header X-Service-Name "service-b" always;
+          add_header X-Response-Type "slow" always;
+          add_header X-Upstream-Service "service-a" always;
+        }
+        
+        # Default route
+        location / {
+          return 200 '{"service":"service-b","available_endpoints":["/slow","/health"]}\n';
+          add_header Content-Type application/json;
+        }
+      }
+    }

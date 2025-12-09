@@ -1,0 +1,73 @@
+Thank you for installing {{ .Chart.Name }}!
+
+Your Grafana Demo Services have been deployed successfully.
+
+═══════════════════════════════════════════════════════════════
+
+📊 DEPLOYED SERVICES:
+
+  • Service A (Fast Response)
+    - Endpoint: GET /fast
+    - Returns mock JSON data immediately
+  
+  • Service B (Internal Call)
+    - Endpoint: GET /slow
+    - Makes internal call to Service A
+  
+  • Service C (External Call)
+    - Endpoint: GET /external
+    - Makes call to external public API
+
+═══════════════════════════════════════════════════════════════
+
+🔍 TO TEST YOUR SERVICES:
+
+1. Service A - Fast endpoint:
+   kubectl port-forward svc/{{ .Values.serviceA.name }} 8080:{{ .Values.serviceA.port }}
+   curl http://localhost:8080/fast
+
+2. Service B - Slow endpoint (calls Service A):
+   kubectl port-forward svc/{{ .Values.serviceB.name }} 8081:{{ .Values.serviceB.port }}
+   curl http://localhost:8081/slow
+
+3. Service C - External endpoint:
+   kubectl port-forward svc/{{ .Values.serviceC.name }} 8082:{{ .Values.serviceC.port }}
+   curl http://localhost:8082/external
+
+═══════════════════════════════════════════════════════════════
+
+📈 OBSERVABILITY:
+
+These services are instrumented for Grafana Cloud observability:
+  • Metrics: Prometheus annotations included
+  • Traces: Distributed tracing across service calls
+  • Logs: NGINX access/error logs to stdout/stderr
+
+Make sure Alloy is configured to collect and forward:
+  - Metrics to Prometheus
+  - Traces to Tempo
+  - Logs to Loki
+
+═══════════════════════════════════════════════════════════════
+
+📝 MONITORING YOUR DEPLOYMENT:
+
+View pods:
+  kubectl get pods -l app={{ .Values.serviceA.name }}
+  kubectl get pods -l app={{ .Values.serviceB.name }}
+  kubectl get pods -l app={{ .Values.serviceC.name }}
+
+View logs:
+  kubectl logs -l app={{ .Values.serviceA.name }} -f
+  kubectl logs -l app={{ .Values.serviceB.name }} -f
+  kubectl logs -l app={{ .Values.serviceC.name }} -f
+
+Check service health:
+  kubectl get svc {{ .Values.serviceA.name }}
+  kubectl get svc {{ .Values.serviceB.name }}
+  kubectl get svc {{ .Values.serviceC.name }}
+
+═══════════════════════════════════════════════════════════════
+
+For more information, visit:
+  https://grafana.com/docs/grafana-cloud/

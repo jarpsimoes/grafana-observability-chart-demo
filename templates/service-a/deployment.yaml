@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.serviceA.name }}
+  labels:
+    app: {{ .Values.serviceA.name }}
+spec:
+  replicas: {{ .Values.serviceA.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.serviceA.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.serviceA.name }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.serviceA.containerPort }}"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: {{ .Values.serviceA.name }}
+          image: {{ .Values.serviceA.image }}
+          ports:
+            - containerPort: {{ .Values.serviceA.containerPort }}
+              name: http
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: {{ .Values.serviceA.name }}-config

@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.serviceA.name }}-config
+  labels:
+    app: {{ .Values.serviceA.name }}
+data:
+  nginx.conf: |
+    events {
+      worker_connections 1024;
+    }
+    
+    http {
+      include /etc/nginx/mime.types;
+      default_type application/json;
+      
+      # Enable access log for observability
+      access_log /var/log/nginx/access.log;
+      error_log /var/log/nginx/error.log;
+      
+      server {
+        listen {{ .Values.serviceA.containerPort }};
+        server_name _;
+        
+        # Health check endpoint
+        location /health {
+          access_log off;
+          return 200 '{"status":"healthy","service":"service-a"}\n';
+          add_header Content-Type application/json;
+        }
+        
+        # Fast endpoint - returns mock JSON data immediately
+        location /fast {
+          default_type application/json;
+          return 200 '{
+            "service": "service-a",
+            "endpoint": "/fast",
+            "message": "This is a fast response",
+            "data": {
+              "id": 1,
+              "name": "Sample User",
+              "email": "user@example.com",
+              "timestamp": "$time_iso8601"
+            },
+            "metadata": {
+              "server": "$hostname",
+              "request_id": "$request_id"
+            }
+          }\n';
+          add_header X-Service-Name "service-a";
+          add_header X-Response-Type "fast";
+        }
+        
+        # Default route
+        location / {
+          return 200 '{"service":"service-a","available_endpoints":["/fast","/health"]}\n';
+          add_header Content-Type application/json;
+        }
+      }
+    }

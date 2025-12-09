@@ -1,0 +1,44 @@
+# Default values for grafana-demo-services.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Service A - Fast endpoint that returns mock JSON data
+serviceA:
+  name: service-a
+  image: nginx:alpine
+  replicas: 2
+  port: 80
+  containerPort: 80
+
+# Service B - Slow endpoint that calls Service A
+serviceB:
+  name: service-b
+  image: nginx:alpine
+  replicas: 2
+  port: 80
+  containerPort: 80
+  serviceAUrl: http://service-a/fast
+
+# Service C - External endpoint that calls a public API
+serviceC:
+  name: service-c
+  image: nginx:alpine
+  replicas: 2
+  port: 80
+  containerPort: 80
+  externalApiUrl: https://jsonplaceholder.typicode.com/posts/1
+
+# Resource limits and requests
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
