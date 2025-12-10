@@ -6,7 +6,7 @@
 serviceA:
   name: service-a
   image: nginx:alpine
-  replicas: 2
+  replicas: 1
   port: 80
   containerPort: 80
 
@@ -14,7 +14,7 @@ serviceA:
 serviceB:
   name: service-b
   image: nginx:alpine
-  replicas: 2
+  replicas: 1
   port: 80
   containerPort: 80
   serviceAUrl: http://service-a/fast
